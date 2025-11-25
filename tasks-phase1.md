@@ -38,10 +38,12 @@ IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each wo
 8. Create a new PR and add costs by entering the expected consumption into Infracost
 For all the resources of type: `google_artifact_registry`, `google_storage_bucket`, `google_service_networking_connection`
 create a sample usage profiles and add it to the Infracost task in CI/CD pipeline. Usage file [example](https://github.com/infracost/infracost/blob/master/infracost-usage-example.yml) 
+    
+    Nasze szacunki:
+    ![img.png](infracost_estimate.png)
 
-   ***place the expected consumption you entered here***
-
-   ***place the screenshot from infracost output here***
+    Komentarz na PR:
+    ![img.png](infracost_comment.png)
 
 9. Create a BigQuery dataset and an external table using SQL
     
@@ -51,7 +53,10 @@ create a sample usage profiles and add it to the Infracost task in CI/CD pipelin
 
 10. Find and correct the error in spark-job.py
 
-    ***describe the cause and how to find the error***
+    Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt. Został zmieniony na
+    `DATA_BUCKET = "gs://tbd-2025z-3187321-data/data/shakespeare/"`
+
+    Reszta powinna być w porządku - o tym czy zadziała dowiemy się z logów Dataproc > Jobs > Jobs kiedy już możliwe będzie zreleasowanie projektu.
 
 11. Add support for preemptible/spot instances in a Dataproc cluster
 
