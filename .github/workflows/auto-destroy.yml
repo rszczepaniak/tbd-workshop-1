@@ -8,9 +8,7 @@ on:
     types: [closed]
     branches: [master]
 
-permissions:
-  contents: read
-  pull-requests: read
+permissions: read-all
 
 jobs:
   auto-destroy:
@@ -21,6 +19,9 @@ jobs:
        contains(github.event.pull_request.title, '[CLEANUP]'))
 
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
 
     steps:
       - name: Checkout repo
