@@ -35,7 +35,6 @@ resource "google_storage_bucket_object" "job-code" {
   source   = "${path.module}/resources/${each.value}"
 }
 
-
 resource "google_storage_bucket_object" "dag-code" {
   for_each = toset(["data-dag.py"])
   bucket   = local.dag_bucket_name

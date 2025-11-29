@@ -50,7 +50,9 @@ create a sample usage profiles and add it to the Infracost task in CI/CD pipelin
     ![img.png](infracost_comment.png)
 
 9. Create a BigQuery dataset and an external table using SQL
-   ```
+    Aby zrobić ten krok musiałem manualnie wgrać spark-job.py do kubełka z kodem komendą
+    `gsutil cp ./modules/data-pipeline/resources/spark-job.py gs://tbd-2025z-3187321-code/spark-job.py` a następnie uruchomiłem zadanie komendą `gcloud dataproc jobs submit pyspark gs://tbd-2025z-3187321-code/spark-job.py --cluster=tbd-cluster --region=europe-west1`. Wynika to z tego że `spark-job.py` uruchamiał job w `data-pipeline` zdefiniowany w `main.tf`. Przez to że musiałem zakomentować composera, a data-pipeline używał wyników z composera to plik ten ani nie został wgrany automatycznie ani nie został uruchomiony. Innym rozwiązaniem byłoby dodanie data-pipeline i napisanie na sztywno danych, natomiast patrząc na kod można łatwo zrozumieć że powinien on współpracować z composerem, dlatego zdecydowałem się go nie dodawać.
+```
 create schema if not exists dataset;
 
 create or replace external table dataset.shakespeare
@@ -59,6 +61,7 @@ create or replace external table dataset.shakespeare
     uris = ['gs://tbd-2025z-3187321-data/data/shakespeare/*.orc']
   );
 ```
+    ![img.png](big-query-result.png)
 
     Format ORC nie wymaga oddzielnego `table schema` ponieważ zawiera on informacje o swoim schemacie (to jest nazwy kolumn oraz typy danych) wewnątrz pliku. Dzięki temu Big Data może automatycznie tworzyć strukturę danych bez ręcznego definiowania schematu.
 
@@ -67,7 +70,49 @@ create or replace external table dataset.shakespeare
     Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt. Został zmieniony na
     `DATA_BUCKET = "gs://tbd-2025z-3187321-data/data/shakespeare/"`
 
-    Reszta powinna być w porządku - o tym czy zadziała dowiemy się z logów Dataproc > Jobs > Jobs kiedy już możliwe będzie zreleasowanie projektu.
+    Aby przetestować czy skrypt został naprawiony uruchomiłem ręcznie joba tak jak w kroku 9. Skrócony output:
+```
+...
+|  my|         11291|
+|  in|         10589|
+|  is|          8735|
+|that|          8561|
+| not|          8395|
+|  me|          8030|
+| And|          7780|
+|with|          7224|
+|  it|          7137|
+| his|          6811|
+|  be|          6724|
+|your|          6244|
+| for|          6154|
++----+--------------+
+only showing top 20 rows
+...
+  clusterUuid: 1f073855-12af-42c1-9b94-bb484545f3fd
+pysparkJob:
+  mainPythonFileUri: gs://tbd-2025z-3187321-code/spark-job.py
+reference:
+  jobId: 8bc2433dc7384d52a071d42f36a6971a
+  projectId: tbd-2025z-3187321
+status:
+  state: DONE
+  stateStartTime: '2025-11-29T14:14:30.941191Z'
+statusHistory:
+- state: PENDING
+  stateStartTime: '2025-11-29T14:12:12.634651Z'
+- state: SETUP_DONE
+  stateStartTime: '2025-11-29T14:12:12.753036Z'
+- details: Agent reported job success
+  state: RUNNING
+  stateStartTime: '2025-11-29T14:12:13.263172Z'
+yarnApplications:
+- name: Shakespeare WordCount
+  progress: 1.0
+  state: FINISHED
+  trackingUrl: http://tbd-cluster-m.c.tbd-2025z-3187321.internal.:8088/proxy/application_1764419387476_0001/
+(tbd) rafal@temeria:~/Desktop/tbd/tbd-workshop-1$ 
+```
 
 11. Add support for preemptible/spot instances in a Dataproc cluster
 
