@@ -146,7 +146,52 @@ Steps:
   2. Configure it to authenticate and destroy Terraform resources
   3. Test the trigger (schedule or cleanup-tagged PR)
      
-***paste workflow YAML here***
+```
+name: Auto Terraform Destroy
+
+on:
+  schedule:
+    # Every day at 20:00 UTC
+    - cron: "0 20 * * *"
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  auto-destroy:
+    if: >
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       contains(github.event.pull_request.title, '[CLEANUP]'))
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.11.0
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_NAME }}
+          service_account: ${{ secrets.GCP_WORKLOAD_IDENTITY_SA_EMAIL }}
+      
+      - name: Terraform Init
+        working-directory: .
+        run: terraform init -backend-config=env/backend.tfvars
+
+      - name: Terraform Destroy
+        working-directory: .
+        run: terraform destroy -var-file env/project.tfvars -auto-approve
+```
 
 ***paste screenshot/log snippet confirming the auto-destroy ran***
 
