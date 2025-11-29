@@ -5,8 +5,8 @@ locals {
   notebook_subnet_id   = "${var.region}/${local.notebook_subnet_name}"
   #composer_subnet_address = "10.11.0.0/16"
   #composer_work_namespace = "composer-user-workloads"
-  #code_bucket_name        = "${var.project_name}-code"
-  #data_bucket_name        = "${var.project_name}-data"
+  code_bucket_name = "${var.project_name}-code"
+  data_bucket_name = "${var.project_name}-data"
   #spark_version           = "3.5.1"
   #spark_driver_port       = 30000
   #spark_blockmgr_port     = 30001
@@ -162,4 +162,30 @@ resource "google_compute_firewall" "allow-all-internal" {
     protocol = "all"
   }
   source_ranges = ["10.0.0.0/8"]
+}
+
+resource "google_storage_bucket" "code" {
+  name                        = local.code_bucket_name
+  location                    = var.region
+  uniform_bucket_level_access = true
+  force_destroy               = true
+
+  public_access_prevention = "enforced"
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "google_storage_bucket" "data" {
+  name                        = local.data_bucket_name
+  location                    = var.region
+  uniform_bucket_level_access = true
+  force_destroy               = true
+
+  public_access_prevention = "enforced"
+
+  versioning {
+    enabled = true
+  }
 }
