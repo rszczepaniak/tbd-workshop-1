@@ -45,4 +45,5 @@ jobs:
 
       - name: Terraform Destroy
         working-directory: .
-        run: terraform destroy -var-file env/project.tfvars -auto-approve
+        run: terraform destroy -no-color -var-file env/project.tfvars -auto-approve
+        continue-on-error: false
