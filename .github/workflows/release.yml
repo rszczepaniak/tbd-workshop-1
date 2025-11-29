@@ -6,6 +6,8 @@ on:
 permissions: read-all
 jobs:
   release:
+    if: "!contains(github.event.head_commit.message, '[CLEANUP]')"
+
     runs-on: ubuntu-latest
   # Add "id-token" with the intended permissions.
     permissions:
