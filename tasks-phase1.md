@@ -50,10 +50,17 @@ create a sample usage profiles and add it to the Infracost task in CI/CD pipelin
     ![img.png](infracost_comment.png)
 
 9. Create a BigQuery dataset and an external table using SQL
-    
-    ***place the code and output here***
-   
-    ***why does ORC not require a table schema?***
+   ```
+create schema if not exists dataset;
+
+create or replace external table dataset.shakespeare
+  options (
+    format = 'ORC',
+    uris = ['gs://tbd-2025z-3187321-data/data/shakespeare/*.orc']
+  );
+```
+
+    Format ORC nie wymaga oddzielnego `table schema` ponieważ zawiera on informacje o swoim schemacie (to jest nazwy kolumn oraz typy danych) wewnątrz pliku. Dzięki temu Big Data może automatycznie tworzyć strukturę danych bez ręcznego definiowania schematu.
 
 10. Find and correct the error in spark-job.py
 
