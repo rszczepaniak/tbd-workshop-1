@@ -13,21 +13,25 @@ IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each wo
 3. From avaialble Github Actions select and run destroy on main branch.
    
 4. Create new git branch and:
-    Wystąpiły problemy z jobem `release` ponieważ brakuje zasobów Persistent Disk SSD (250GB) a wnioski o zwiększenie quoty są odrzucane. Punkt tymczasowo pominięty.
-    
-    ***place the screenshot from GA after succesfull application of release***
+![img.png](successful-release.png)
 
 
 5. Analyze terraform code. Play with terraform plan, terraform graph to investigate different modules.
 
     Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
 
+    Ze względu na zbyt małą quotę musieliśmy usunąć moduł composer.
+
+    Pełen graph przed usunięciem:
     ![img.png](full-graph.png)
 
+    Graph po usunięciu:
+    ![img.png](partial-graph.png)
+
 6. Reach YARN UI
-   `gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-b -- -L 8088:localhost:8088`
+   `gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-c -- -L 8088:localhost:8088`
    
-   Ze względu na brak możliwości uruchomienia joba `release` wyżej wymieniona komenda nie zadziała.
+    ![img.png](yarn-ui-browser.png)
 
 7. Draw an architecture diagram (e.g. in draw.io) that includes:
     1. Description of the components of service accounts
