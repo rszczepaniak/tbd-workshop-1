@@ -195,4 +195,4 @@ jobs:
 
 ***paste screenshot/log snippet confirming the auto-destroy ran***
 
-***write one sentence why scheduling cleanup helps in this workshop***
+Ponieważ bez tego joba ktoś mógłby zapomnieć usunąć infrastrukturę na GCP co wtórnie mogłoby poskutkować marnowanymi pieniędzmi.
