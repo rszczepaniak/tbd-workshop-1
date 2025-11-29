@@ -4,30 +4,31 @@ IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each wo
 
 1. Authors:
 
-   ***enter your group nr***
+   6
 
-   ***link to forked repo***
+   [***link to forked repo***](https://github.com/rszczepaniak/tbd-workshop-1)
    
 2. Follow all steps in README.md.
 
 3. From avaialble Github Actions select and run destroy on main branch.
    
 4. Create new git branch and:
-    1. Modify tasks-phase1.md file.
-    
-    2. Create PR from this branch to **YOUR** master and merge it to make new release. 
+    Wystąpiły problemy z jobem `release` ponieważ brakuje zasobów Persistent Disk SSD (250GB) a wnioski o zwiększenie quoty są odrzucane. Punkt tymczasowo pominięty.
     
     ***place the screenshot from GA after succesfull application of release***
 
 
 5. Analyze terraform code. Play with terraform plan, terraform graph to investigate different modules.
 
-    ***describe one selected module and put the output of terraform graph for this module here***
-   
+    Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
+
+    ![img.png](full-graph.png)
+
 6. Reach YARN UI
+   `gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-b -- -L 8088:localhost:8088`
    
-   ***place the command you used for setting up the tunnel, the port and the screenshot of YARN UI here***
-   
+   Ze względu na brak możliwości uruchomienia joba `release` wyżej wymieniona komenda nie zadziała.
+
 7. Draw an architecture diagram (e.g. in draw.io) that includes:
     1. Description of the components of service accounts
     2. List of buckets for disposal
@@ -37,10 +38,12 @@ IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each wo
 8. Create a new PR and add costs by entering the expected consumption into Infracost
 For all the resources of type: `google_artifact_registry`, `google_storage_bucket`, `google_service_networking_connection`
 create a sample usage profiles and add it to the Infracost task in CI/CD pipeline. Usage file [example](https://github.com/infracost/infracost/blob/master/infracost-usage-example.yml) 
+    
+    Nasze szacunki:
+    ![img.png](infracost_estimate.png)
 
-   ***place the expected consumption you entered here***
-
-   ***place the screenshot from infracost output here***
+    Komentarz na PR:
+    ![img.png](infracost_comment.png)
 
 9. Create a BigQuery dataset and an external table using SQL
     
@@ -50,11 +53,27 @@ create a sample usage profiles and add it to the Infracost task in CI/CD pipelin
 
 10. Find and correct the error in spark-job.py
 
-    ***describe the cause and how to find the error***
+    Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt. Został zmieniony na
+    `DATA_BUCKET = "gs://tbd-2025z-3187321-data/data/shakespeare/"`
+
+    Reszta powinna być w porządku - o tym czy zadziała dowiemy się z logów Dataproc > Jobs > Jobs kiedy już możliwe będzie zreleasowanie projektu.
 
 11. Add support for preemptible/spot instances in a Dataproc cluster
 
-    ***place the link to the modified file and inserted terraform code***
+    [link to modified file](https://github.com/rszczepaniak/tbd-workshop-1/blob/master/modules/dataproc/main.tf)
+
+    What was added (at the bottom)
+```
+preemptible_worker_config {
+      num_instances  = 2
+      preemptibility = "SPOT"
+
+      disk_config {
+        boot_disk_type    = "pd-standard"
+        boot_disk_size_gb = 100
+      }
+    }
+```    
     
 12. Triggered Terraform Destroy on Schedule or After PR Merge. Goal: make sure we never forget to clean up resources and burn money.
 
