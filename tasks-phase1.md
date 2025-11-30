@@ -1,57 +1,61 @@
-IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each work session. You can recreate infrastructure by creating new PR and merging it to master.
-  
+IMPORTANT ! ! ! Please remember to destroy all the resources after each work session. You can recreate infrastructure by creating new PR and merging it to master.
+
 ![img.png](doc/figures/destroy.png)
 
 1. Authors:
 
-   6
+6
 
-   [***link to forked repo***](https://github.com/rszczepaniak/tbd-workshop-1)
+[***link to forked repo***](https://github.com/rszczepaniak/tbd-workshop-1)
    
 2. Follow all steps in README.md.
 
 3. From avaialble Github Actions select and run destroy on main branch.
    
 4. Create new git branch and:
-![img.png](successful-release.png)
 
+![img.png](successful-release.png)
 
 5. Analyze terraform code. Play with terraform plan, terraform graph to investigate different modules.
 
-    Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
+Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
 
-    Ze względu na zbyt małą quotę musieliśmy usunąć moduł composer.
+Ze względu na zbyt małą quotę musieliśmy usunąć moduł composer.
 
-    Pełen graph przed usunięciem:
-    ![img.png](full-graph.png)
+Pełen graph przed usunięciem:
 
-    Graph po usunięciu:
-    ![img.png](partial-graph.png)
+![img.png](full-graph.png)
+
+Graph po usunięciu:
+
+![img.png](partial-graph.png)
 
 6. Reach YARN UI
-   `gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-c -- -L 8088:localhost:8088`
-   
-    ![img.png](yarn-ui-browser.png)
+
+Uruchomiliśmy YARN UI wywołując poniższą komendę:
+
+`gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-c -- -L 8088:localhost:8088`
+
+![img.png](yarn-ui-browser.png)
 
 7. Draw an architecture diagram (e.g. in draw.io) that includes:
-    1. Description of the components of service accounts
-    2. List of buckets for disposal
-    
-    ***place your diagram here***
+![img.png](tbd_diagram.png)
 
 8. Create a new PR and add costs by entering the expected consumption into Infracost
-For all the resources of type: `google_artifact_registry`, `google_storage_bucket`, `google_service_networking_connection`
-create a sample usage profiles and add it to the Infracost task in CI/CD pipeline. Usage file [example](https://github.com/infracost/infracost/blob/master/infracost-usage-example.yml) 
+For all the resources of type: `google_artifact_registry`, `google_storage_bucket`, `google_service_networking_connection` create a sample usage profiles and add it to the Infracost task in CI/CD pipeline. Usage file [example](https://github.com/infracost/infracost/blob/master/infracost-usage-example.yml) 
     
-    Nasze szacunki:
-    ![img.png](infracost_estimate.png)
+Nasze szacunki:
 
-    Komentarz na PR:
-    ![img.png](infracost_comment.png)
+![img.png](infracost_estimate.png)
+
+Komentarz na PR:
+
+![img.png](infracost_comment.png)
 
 9. Create a BigQuery dataset and an external table using SQL
     
-    Aby zrobić ten krok musiałem manualnie wgrać spark-job.py do kubełka z kodem komendą `gsutil cp ./modules/data-pipeline/resources/spark-job.py gs://tbd-2025z-3187321-code/spark-job.py` a następnie uruchomiłem zadanie komendą `gcloud dataproc jobs submit pyspark gs://tbd-2025z-3187321-code/spark-job.py --cluster=tbd-cluster --region=europe-west1`. Wynika to z tego że `spark-job.py` uruchamiał job w `data-pipeline` zdefiniowany w `main.tf`. Przez to że musiałem zakomentować composera, a data-pipeline używał wyników z composera to plik ten ani nie został wgrany automatycznie ani nie został uruchomiony. Innym rozwiązaniem byłoby dodanie data-pipeline i napisanie na sztywno danych, natomiast patrząc na kod można łatwo zrozumieć że powinien on współpracować z composerem, dlatego zdecydowałem się go nie dodawać.
+Aby zrobić ten krok musiałem manualnie wgrać spark-job.py do kubełka z kodem komendą `gsutil cp ./modules/data-pipeline/resources/spark-job.py gs://tbd-2025z-3187321-code/spark-job.py` a następnie uruchomiłem zadanie komendą `gcloud dataproc jobs submit pyspark gs://tbd-2025z-3187321-code/spark-job.py --cluster=tbd-cluster --region=europe-west1`. Wynika to z tego że `spark-job.py` uruchamiał job w `data-pipeline` zdefiniowany w `main.tf`. Przez to że musiałem zakomentować composera, a data-pipeline używał wyników z composera to plik ten ani nie został wgrany automatycznie ani nie został uruchomiony. Innym rozwiązaniem byłoby dodanie data-pipeline i napisanie na sztywno danych, natomiast patrząc na kod można łatwo zrozumieć że powinien on współpracować z composerem, dlatego zdecydowałem się go nie dodawać.
+
 ```
 create schema if not exists dataset;
 
@@ -61,19 +65,20 @@ create or replace external table dataset.shakespeare
     uris = ['gs://tbd-2025z-3187321-data/data/shakespeare/*.orc']
   );
 ```
-    
 ![img.png](big-query-result.png)
 
-    Format ORC nie wymaga oddzielnego `table schema` ponieważ zawiera on informacje o swoim schemacie (to jest nazwy kolumn oraz typy danych) wewnątrz pliku. Dzięki temu Big Data może automatycznie tworzyć strukturę danych bez ręcznego definiowania schematu.
+Format ORC nie wymaga oddzielnego `table schema` ponieważ zawiera on informacje o swoim schemacie (to jest nazwy kolumn oraz typy danych) wewnątrz pliku. Dzięki temu Big Data może automatycznie tworzyć strukturę danych bez ręcznego definiowania schematu.
 
 10. Find and correct the error in spark-job.py
 
-    Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt. Został zmieniony na
-    `DATA_BUCKET = "gs://tbd-2025z-3187321-data/data/shakespeare/"`
+Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt. Został zmieniony na
 
-    Aby przetestować czy skrypt został naprawiony uruchomiłem ręcznie joba tak jak w kroku 9. Skrócony output:
+`DATA_BUCKET = "gs://tbd-2025z-3187321-data/data/shakespeare/"`
+
+Aby przetestować czy skrypt został naprawiony uruchomiłem ręcznie joba tak jak w kroku 9. Skrócony output:
 ```
 ...
+
 |  my|         11291|
 |  in|         10589|
 |  is|          8735|
@@ -89,7 +94,9 @@ create or replace external table dataset.shakespeare
 | for|          6154|
 +----+--------------+
 only showing top 20 rows
+
 ...
+
   clusterUuid: 1f073855-12af-42c1-9b94-bb484545f3fd
 pysparkJob:
   mainPythonFileUri: gs://tbd-2025z-3187321-code/spark-job.py
@@ -116,10 +123,10 @@ yarnApplications:
 ```
 
 11. Add support for preemptible/spot instances in a Dataproc cluster
+[link to modified file](https://github.com/rszczepaniak/tbd-workshop-1/blob/master/modules/dataproc/main.tf)
 
-    [link to modified file](https://github.com/rszczepaniak/tbd-workshop-1/blob/master/modules/dataproc/main.tf)
+Na dole dodaliśmy:
 
-    What was added (at the bottom)
 ```
 preemptible_worker_config {
       num_instances  = 2
@@ -146,7 +153,9 @@ Steps:
   1. Create file .github/workflows/auto-destroy.yml
   2. Configure it to authenticate and destroy Terraform resources
   3. Test the trigger (schedule or cleanup-tagged PR)
-     
+
+Plik auto-destroy.yml:
+
 ```
 name: Auto Terraform Destroy
 
@@ -156,7 +165,9 @@ on:
     - cron: "0 20 * * *"
   pull_request:
     types: [closed]
-    branches: [main]
+    branches: [master]
+
+permissions: read-all
 
 jobs:
   auto-destroy:
@@ -167,6 +178,9 @@ jobs:
        contains(github.event.pull_request.title, '[CLEANUP]'))
 
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
 
     steps:
       - name: Checkout repo
@@ -191,10 +205,15 @@ jobs:
 
       - name: Terraform Destroy
         working-directory: .
-        run: terraform destroy -var-file env/project.tfvars -auto-approve
+        run: terraform destroy -no-color -var-file env/project.tfvars -auto-approve
+        continue-on-error: false
 ```
 
-***paste screenshot/log snippet confirming the auto-destroy ran***
+Screenshot potwierdzający uruchomienie się joba:
+![img.png](auto-destroy-run.png)
+
+Jak widać na załączonym screenshocie job `release` się nie uruchomił ponieważ w merge commicie jest tag [CLEANUP], a job `auto-destroy` się uruchomił i usunął całą infrastrukturę.
+
+Dlaczego warto zdefiniować taki job?
 
 Ponieważ bez tego joba ktoś mógłby zapomnieć usunąć infrastrukturę na GCP co wtórnie mogłoby poskutkować marnowanymi pieniędzmi.
-
