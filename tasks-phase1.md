@@ -1,39 +1,41 @@
-IMPORTANT ❗ ❗ ❗ Please remember to destroy all the resources after each work session. You can recreate infrastructure by creating new PR and merging it to master.
-  
+IMPORTANT ! ! ! Please remember to destroy all the resources after each work session. You can recreate infrastructure by creating new PR and merging it to master.
+
 ![img.png](doc/figures/destroy.png)
 
 1. Authors:
 
-   6
+6
 
-   [***link to forked repo***](https://github.com/rszczepaniak/tbd-workshop-1)
+[***link to forked repo***](https://github.com/rszczepaniak/tbd-workshop-1)
    
 2. Follow all steps in README.md.
 
 3. From avaialble Github Actions select and run destroy on main branch.
    
 4. Create new git branch and:
-![img.png](successful-release.png)
 
+![img.png](successful-release.png)
 
 5. Analyze terraform code. Play with terraform plan, terraform graph to investigate different modules.
 
-    Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
+Moduł composer tworzy zarządzane środowisko Apache Airflow w usłudze Google Cloud Composer, które pełni rolę centralnego orkiestratora pipeline’ów danych. Jest on zależny od sieci VPC (depends_on = module.vpc module.vpc) i tworzy dedykowaną podsieć dla klastra Composera (subnet_address = local.composer_subnet_address). Moduł konfiguruje środowisko Airflow w zadanym projekcie i regionie, przypisuje je do sieci VPC (network = module.vpc.network.network_name) oraz ustawia zmienne środowiskowe umożliwiające integrację z Dataproc, GCS i klastrem GKE wykorzystywanym do zadań dbt i Spark.
 
-    Ze względu na zbyt małą quotę musieliśmy usunąć moduł composer.
+Ze względu na zbyt małą quotę musieliśmy usunąć moduł composer.
 
-    Pełen graph przed usunięciem:
-    ![img.png](full-graph.png)
+Pełen graph przed usunięciem:
 
-    Graph po usunięciu:
-    ![img.png](partial-graph.png)
+![img.png](full-graph.png)
+
+Graph po usunięciu:
+
+![img.png](partial-graph.png)
 
 6. Reach YARN UI
 
 Uruchomiliśmy YARN UI wywołując poniższą komendę:
 
 `gcloud compute ssh tbd-cluster-m --project tbd-2025z-3187321 --zone europe-west1-c -- -L 8088:localhost:8088`
-   
+
 ![img.png](yarn-ui-browser.png)
 
 7. Draw an architecture diagram (e.g. in draw.io) that includes:
@@ -63,7 +65,6 @@ create or replace external table dataset.shakespeare
     uris = ['gs://tbd-2025z-3187321-data/data/shakespeare/*.orc']
   );
 ```
-    
 ![img.png](big-query-result.png)
 
 Format ORC nie wymaga oddzielnego `table schema` ponieważ zawiera on informacje o swoim schemacie (to jest nazwy kolumn oraz typy danych) wewnątrz pliku. Dzięki temu Big Data może automatycznie tworzyć strukturę danych bez ręcznego definiowania schematu.
@@ -77,6 +78,7 @@ Problem polegał na tym, że nazwa Bucketa była ustawiona na poprzedni projekt.
 Aby przetestować czy skrypt został naprawiony uruchomiłem ręcznie joba tak jak w kroku 9. Skrócony output:
 ```
 ...
+
 |  my|         11291|
 |  in|         10589|
 |  is|          8735|
@@ -121,7 +123,6 @@ yarnApplications:
 ```
 
 11. Add support for preemptible/spot instances in a Dataproc cluster
-
 [link to modified file](https://github.com/rszczepaniak/tbd-workshop-1/blob/master/modules/dataproc/main.tf)
 
 Na dole dodaliśmy:
@@ -209,7 +210,6 @@ jobs:
 ```
 
 Screenshot potwierdzający uruchomienie się joba:
-
 ![img.png](auto-destroy-run.png)
 
 Jak widać na załączonym screenshocie job `release` się nie uruchomił ponieważ w merge commicie jest tag [CLEANUP], a job `auto-destroy` się uruchomił i usunął całą infrastrukturę.
